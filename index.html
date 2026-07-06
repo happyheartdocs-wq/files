@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .selected-files-list {
+            margin-top: 12px;
+            background: #ffffff;
+            border: 1px dashed #dcdcdc;
+            padding: 10px;
+            border-radius: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        .selected-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 4px;
+        }
+
+        .selected-file-item + .selected-file-item {
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .remove-selected-file {
+            background: transparent;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .upload-btn {
+            display: block;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .filter-section select,
+        .filter-section input,
+        .search-input,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        .main-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card p {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .documents-section {
+            flex: 1;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .documents-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sort-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            min-width: 200px;
+        }
+
+        .sort-panel label {
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .filters-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filters-inline input[type="text"],
+        .filters-inline input[type="number"],
+        .filters-inline select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95em;
+            min-width: 120px;
+        }
+
+        .filters-inline .search-input {
+            min-width: 220px;
+        }
+
+        .view-btn {
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .document-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .document-card:hover {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: translateY(-5px);
+        }
+
+        .doc-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .doc-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            word-break: break-word;
+            font-size: 0.95em;
+        }
+
+        .doc-meta {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .view-btn-doc {
+            background: #667eea;
+            color: white;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .share-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .social-share-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.3s, opacity 0.3s;
+            color: white;
+        }
+
+        .social-share-btn:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        .facebook { background: #1877F2; }
+        .twitter { background: #000000; }
+        .whatsapp { background: #25D366; }
+        .linkedin { background: #0A66C2; }
+        .telegram { background: #0088CC; }
+        .reddit { background: #FF4500; }
+        .tiktok { background: #000000; }
+        .email-share { background: #EA4335; }
+
+        .social-platforms {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .social-platforms button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .social-platforms button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Share Dropdown Styles */
+        .share-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .share-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .share-dropdown:hover .share-dropdown-content {
+            display: block;
+        }
+
+        .share-dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .share-dropdown-content a:hover {
+            background-color: #ddd;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .documents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .document-row {
+            display: grid;
+            grid-template-columns: 50px 2fr 150px 150px auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .document-row:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .row-icon {
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .row-info h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .row-info p {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .close {
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .document-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 5px;
+            z-index: 2000;
+            animation: slideInRight 0.3s;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        /* Drag and Drop Zone */
+        .drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            background: #e8eaf6;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        /* Storage Status Indicator */
+        .storage-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .storage-status-icon {
+            font-size: 1.5em;
+        }
+
+        .storage-status-text {
+            flex: 1;
+        }
+
+        .storage-status-text strong {
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .storage-status-badge {
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+
+        .storage-status-badge.connected {
+            background: #28a745;
+        }
+
+        .storage-status-badge.local {
+            background: #ffc107;
+            color: #333;
+        }
+
+        /* Storage Usage Bar */
+        .storage-usage {
+            margin-bottom: 20px;
+        }
+
+        .storage-usage-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .storage-usage-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .storage-usage-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* File Categories */
+        .file-categories {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .category-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .category-btn.active .category-count {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Bulk Actions Bar */
+        .bulk-actions {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .bulk-actions.visible {
+            display: flex;
+        }
+
+        .bulk-actions span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .bulk-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .bulk-select-all {
+            background: #667eea;
+            color: white;
+        }
+
+        .bulk-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .bulk-download {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Checkbox for selection */
+        .doc-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .document-card {
+            position: relative;
+        }
+
+        /* Setup Modal */
+        .setup-modal-content {
+            max-width: 500px;
+        }
+
+        .setup-step {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .setup-step h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .setup-step p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .setup-step code {
+            background: #e0e0e0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: monospace;
+        }
+
+        .api-key-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .quick-action-btn span {
+            display: block;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .quick-action-btn strong {
+            display: block;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        /* Recent Files */
+        .recent-section {
+            margin-bottom: 25px;
+        }
+
+        .recent-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .recent-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .recent-item:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .recent-item-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .recent-item-name {
+            font-size: 0.85em;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Upload Progress */
+        .upload-progress {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-width: 300px;
+            z-index: 3000;
+        }
+
+        .upload-progress h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .progress-item {
+            margin-bottom: 10px;
+        }
+
+        .progress-item-name {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Happy Heart School Document Management System</h1>
+            <p>Organize, upload, and manage all your organization's documents::::::::::::::::::::::::::::::::developed by benelinkz@gmail.com</p>
+        </div>
+
+        <div class="content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Storage Status -->
+                <div class="storage-status" id="storageStatus">
+                    <span class="storage-status-icon">☁️</span>
+                    <div class="storage-status-text">
+                        <strong id="storageType">Local Storage</strong>
+                        <span id="storageInfo">Files saved on this device</span>
+                    </div>
+                    <span class="storage-status-badge local" id="storageBadge">Local</span>
+                </div>
+
+                <div class="upload-section">
+                    <h3>Upload Document</h3>
+                    
+                    <!-- Drag and Drop Zone -->
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-zone-icon">📁</div>
+                        <p><strong>Drag & Drop Files Here</strong></p>
+                        <p>or click to browse</p>
+                    </div>
+                    
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" multiple accept="*/*">
+                        <label for="fileInput" class="upload-btn">+ Select Files</label>
+                    </div>
+                    <div id="selectedFilesList" class="selected-files-list" style="display: none;">
+                        <div id="selectedFilesPlaceholder">No files selected</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Name<span class="required">*</span></label>
+                        <input type="text" id="docActivity" placeholder="e.g. Final Exam, Project Brief">
+                    </div>
+                    <div class="form-group">
+                        <label>Class</label>
+                        <input type="text" id="docClass" placeholder="e.g. Grade 10, JHS2">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" id="docSubject" placeholder="e.g. Calculus, Physics">
+                    </div>
+                    <div class="form-group">
+                        <label>Term / Semester<span class="required">*</span></label>
+                        <select id="docTerm">
+                            <option value="">Select Term / Sem</option>
+                            <optgroup label="Terms">
+                                <option value="1st Term">1st Term</option>
+                                <option value="2nd Term">2nd Term</option>
+                                <option value="3rd Term">3rd Term</option>
+                            </optgroup>
+                            <optgroup label="Semesters">
+                                <option value="1st Sem">1st Sem</option>
+                                <option value="2nd Sem">2nd Sem</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <input type="number" id="docYear" min="2000" max="2100" placeholder="2025">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="docDescription" placeholder="Optional notes"></textarea>
+                    </div>
+                    <button id="uploadBtn" class="upload-btn">Upload Documents</button>
+                    <p style="font-size: 0.85em; color: #999; margin-top: 10px;">
+                        Supports: Images, Videos, Audio, PDFs, Documents, Archives, etc.
+                    </p>
+                </div>
+
+                <!-- Storage Usage -->
+                <div class="storage-usage">
+                    <h3>Storage Usage</h3>
+                    <div class="storage-usage-label">
+                        <span>Used</span>
+                        <span id="usageText">0B</span>
+                    </div>
+                    <div class="storage-usage-bar">
+                        <div class="storage-usage-fill" id="usageFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Filters (moved inline into header for prominence) -->
+            </div>
+
+            <!-- Main Area -->
+            <div class="main-area">
+                <div class="stats">
+                    <div class="stat-card">
+                        <h4>Total Documents</h4>
+                        <p id="totalDocs">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Size</h4>
+                        <p id="totalSize">0B</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>File Types</h4>
+                        <p id="fileTypes">0</p>
+                    </div>
+                </div>
+
+                <div class="documents-section">
+                    <!-- Bulk Actions Bar -->
+                    <div class="bulk-actions" id="bulkActions">
+                        <span id="selectedCount">0 selected</span>
+                        <button class="bulk-btn bulk-select-all" onclick="selectAllDocs()">Select All</button>
+                        <button class="bulk-btn bulk-download" onclick="downloadSelectedDocs()">Download</button>
+                        <button class="bulk-btn bulk-delete" onclick="deleteSelectedDocs()">Delete</button>
+                    </div>
+
+                    <div class="documents-topbar">
+                        <div class="view-toggle">
+                            <button class="view-btn active" onclick="toggleView('grid', this)">Grid View</button>
+                            <button class="view-btn" onclick="toggleView('list', this)">List View</button>
+                        </div>
+                            <div class="filters-inline">
+                                <input type="text" id="searchInput" class="search-input" placeholder="Search by name..." oninput="applyFiltersAndSort()">
+                                <input type="text" id="filterSubject" placeholder="Subject" oninput="applyFiltersAndSort()">
+                                <select id="filterType" onchange="applyFiltersAndSort()">
+                                    <option value="">All Types</option>
+                                    <option value="image">Images</option>
+                                    <option value="video">Videos</option>
+                                    <option value="audio">Audio</option>
+                                    <option value="document">Documents</option>
+                                    <option value="archive">Archives</option>
+                                </select>
+                                <select id="filterTerm" onchange="applyFiltersAndSort()">
+                                    <option value="">All Terms / Sems</option>
+                                    <optgroup label="Terms">
+                                        <option value="1st Term">1st Term</option>
+                                        <option value="2nd Term">2nd Term</option>
+                                        <option value="3rd Term">3rd Term</option>
+                                    </optgroup>
+                                    <optgroup label="Semesters">
+                                        <option value="1st Sem">1st Sem</option>
+                                        <option value="2nd Sem">2nd Sem</option>
+                                    </optgroup>
+                                </select>
+                                <input type="number" id="filterYear" placeholder="Year" oninput="applyFiltersAndSort()">
+                            </div>
+                        <div class="sort-panel">
+                            <label for="sortBy">Sort Documents</label>
+                            <select id="sortBy">
+                                <option value="date-desc">Newest First</option>
+                                <option value="date-asc">Oldest First</option>
+                                <option value="name-asc">Name (A-Z)</option>
+                                <option value="name-desc">Name (Z-A)</option>
+                                <option value="size-desc">Largest First</option>
+                                <option value="size-asc">Smallest First</option>
+                                <option value="subject-asc">Subject (A-Z)</option>
+                                <option value="subject-desc">Subject (Z-A)</option>
+                                <option value="term-asc">Term (A-Z)</option>
+                                <option value="year-desc">Year (Newest)</option>
+                                <option value="year-asc">Year (Oldest)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="documentsContainer" class="documents-grid"></div>
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <h3>📭 No Documents Yet</h3>
+                        <p>Start by uploading your first document using the upload button</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Document Preview</h2>
+                <span class="close" onclick="closeModal('viewModal')">&times;</span>
+            </div>
+            <div id="previewContent"></div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Share Document</h2>
+                <span class="close" onclick="closeModal('shareModal')">&times;</span>
+            </div>
+            <form onsubmit="shareDocument(event)">
+                <div class="form-group">
+                    <label>Recipient Email</label>
+                    <input type="email" id="shareEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Share Message (Optional)</label>
+                    <textarea id="shareMessage" placeholder="Add a message..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Social Media Share Modal -->
+    <div id="socialShareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Share to Social Media</h2>
+                <span class="close" onclick="closeModal('socialShareModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Share to:</label>
+                <div class="social-platforms">
+                    <button type="button" class="social-platforms button facebook" onclick="shareTo('facebook')">
+                        <span>📘</span> Facebook
+                    </button>
+                    <button type="button" class="social-platforms button twitter" onclick="shareTo('x')">
+                        <span>𝕏</span> X
+                    </button>
+                    <button type="button" class="social-platforms button whatsapp" onclick="shareTo('whatsapp')">
+                        <span>💬</span> WhatsApp
+                    </button>
+                    <button type="button" class="social-platforms button linkedin" onclick="shareTo('linkedin')">
+                        <span>💼</span> LinkedIn
+                    </button>
+                    <button type="button" class="social-platforms button telegram" onclick="shareTo('telegram')">
+                        <span>✈️</span> Telegram
+                    </button>
+                    <button type="button" class="social-platforms button reddit" onclick="shareTo('reddit')">
+                        <span>🤖</span> Reddit
+                    </button>
+                    <button type="button" class="social-platforms button tiktok" onclick="shareTo('tiktok')">
+                        <span>🎵</span> TikTok
+                    </button>
+                    <button type="button" class="social-platforms button copy-link" onclick="copyShareLink()">
+                        <span>🔗</span> Copy Link
+                    </button>
+                    <button type="button" class="social-platforms button web-share" onclick="webShare()">
+                        <span>📤</span> Share...
+                    </button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Custom Message (Optional)</label>
+                <textarea id="socialShareMessage" placeholder="Add a message..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cloud Setup Modal -->
+
+
+    <script>
+        // ===== BRIDGE INTEGRATION =====
+        let docsBridge = null;
+        function getBridge() {
+            if (docsBridge) return docsBridge;
+            if (window.parent && window.parent.GradesParentBridge) {
+                docsBridge = window.parent.GradesParentBridge;
+            }
+            return docsBridge;
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'GRADES_STATE_CHANGED') {
+                const resources = getBridge()?.getResources();
+                if (Array.isArray(resources)) {
+                    documents = resources.map(r => ({
+                        id: r.id || Math.random().toString(),
+                        name: r.name,
+                        category: r.category,
+                        dateAdded: r.dateAdded || new Date().toISOString(),
+                        size: r.size || '0 KB'
+                    }));
+                    displayedDocuments = documents.slice();
+                    renderDocuments();
+                }
+            }
+        });
+
+        let documents = [];
+        let displayedDocuments = [];
+        let currentViewMode = 'grid';
+        let selectedFiles = [];
+        let selectedDocs = new Set();
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWy0XXyhMwbESRIhrnjs0l_TYcpVOe-WR5kT21Tvh81_1vu5pusdrDNbV7sc0AAVld/exec';
+
+        const fileIcons = {
+            image: '🖼️',
+            video: '🎬',
+            audio: '🎵',
+            document: '📄',
+            archive: '📦',
+            default: '📃'
+        };
+
+        function fetchDocumentList() {
+            const statusInfo = document.getElementById('storageInfo');
+            statusInfo.textContent = 'Loading documents.............';
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'list' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data.files)) {
+                    documents = data.files.map(file => ({
+                        id: file.id || file.fileId || file.url || file.name || file.title || file.filename || Math.random().toString(36).slice(2),
+                        name: file.name || file.title || file.filename || file.originalFilename || file.name || 'Untitled Document',
+                        type: getFileType(file.mimeType || file.type || file.contentType || ''),
+                        size: Number(file.size || file.byteSize || file.fileSize || file.bytes || 0),
+                        date: file.date || file.modifiedTime || file.createdTime || new Date().toLocaleDateString(),
+                        mimeType: file.mimeType || file.type || file.contentType || '',
+                        activity: file.activity || file.metadata?.activity || file.properties?.activity || 'Unknown',
+                        year: file.year || file.metadata?.year || file.properties?.year || '',
+                        term: file.term || file.metadata?.term || file.properties?.term || '',
+                        className: file.className || file.metadata?.className || file.properties?.className || '',
+                        subject: file.subject || file.metadata?.subject || file.properties?.subject || '',
+                        description: file.description || file.metadata?.description || file.properties?.description || '',
+                        url: file.url || file.downloadURL || file.webViewLink || file.alternateLink || file.mediaLink || file.webContentLink || '',
+                        fullPath: file.id || file.fileId || file.url || file.webViewLink || file.alternateLink || file.name || file.title
+                    }));
+                    displayedDocuments = documents.slice();
+                    renderDocuments();
+                    updateStats();
+                    updateStorageUsage();
+                    statusInfo.textContent = 'Documents loaded.............';
+                } else {
+                    documents = [];
+                    renderDocuments();
+                    updateStats();
+                    statusInfo.textContent = 'No documents available.';
+                }
+            })
+            .catch(err => {
+                console.error('Unable to fetch documents:', err);
+                documents = [];
+                renderDocuments();
+                updateStats();
+                statusInfo.textContent = 'Unable to fetch documents.';
+            });
+        }
+
+        async function uploadDocumentViaScript(file, metadataProps) {
+            const payload = {
+                action: 'upload',
+                filename: file.name,
+                mimeType: file.type,
+                metadata: metadataProps
+            };
+
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async function(e) {
+                    const base64 = e.target.result.split(',')[1];
+                    payload.base64 = base64;
+
+                    try {
+                        const response = await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success' && data.file) {
+                            resolve(data.file);
+                        } else {
+                            reject(new Error(data.message || 'Upload failed'));
+                        }
+                    } catch (uploadErr) {
+                        reject(uploadErr);
+                    }
+                };
+                reader.onerror = () => reject(new Error('File encoding failed'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function deleteDocumentViaScript(fileId) {
+            if (!fileId) {
+                throw new Error('Missing file ID');
+            }
+
+            const payload = {
+                action: 'delete',
+                fileId: fileId
+            };
+
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                return true;
+            }
+            throw new Error(data.message || 'Delete failed');
+        }
+
+        function updateStorageStatus() {
+            const statusType = document.getElementById('storageType');
+            const statusInfo = document.getElementById('storageInfo');
+            const storageBadge = document.getElementById('storageBadge');
+            statusType.textContent = '';
+            statusInfo.textContent = '';
+            storageBadge.textContent = 'Online';
+            storageBadge.className = 'storage-status-badge connected';
+            document.getElementById('uploadBtn').disabled = false;
+        }
+
+        function updateStorageUsage() {
+            const totalSize = documents.reduce((sum, doc) => sum + (doc.size || 0), 0);
+            const maxSize = 100 * 1024 * 1024;
+            const percentage = Math.min((totalSize / maxSize) * 100, 100);
+            document.getElementById('usageText').textContent = formatFileSize(totalSize);
+            document.getElementById('usageFill').style.width = percentage + '%';
+        }
+
+        function initializeDocumentPage() {
+            updateStorageStatus();
+            fetchDocumentList();
+
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                if (files.length > 0) {
+                    selectedFiles = files;
+                    updateSelectedFilesUI();
+                    showNotification(`${files.length} file(s) selected. Click Upload to save.`);
+                }
+            });
+
+            dropZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', event => {
+                selectedFiles = Array.from(event.target.files);
+                updateSelectedFilesUI();
+                showNotification(`${selectedFiles.length} file(s) selected`, false);
+            });
+
+            uploadBtn.addEventListener('click', handleUpload);
+            document.getElementById('searchInput').addEventListener('input', filterDocuments);
+            document.getElementById('filterSubject').addEventListener('input', filterDocuments);
+            document.getElementById('filterType').addEventListener('change', filterDocuments);
+            document.getElementById('filterTerm').addEventListener('change', filterDocuments);
+            document.getElementById('filterYear').addEventListener('input', filterDocuments);
+            document.getElementById('sortBy').addEventListener('change', sortDocuments);
+
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            };
+
+            renderDocuments();
+        }
+
+        initializeDocumentPage();
+
+        // Drag and Drop functionality
+
+        async function handleUpload() {
+            if (!selectedFiles.length) {
+                showNotification('Please select at least one file first.', true);
+                return;
+            }
+
+            const activity = document.getElementById('docActivity').value.trim();
+            const term = document.getElementById('docTerm').value;
+            const year = document.getElementById('docYear').value.trim();
+            const className = document.getElementById('docClass').value.trim();
+            const subject = document.getElementById('docSubject').value.trim();
+            const description = document.getElementById('docDescription').value.trim();
+
+            if (!activity || !year || !term) {
+                showNotification('Please enter activity name, year, and term/semester.', true);
+                return;
+            }
+
+            let uploadedCount = 0;
+            let successCount = 0;
+
+            for (const file of selectedFiles) {
+                const metadataProps = {
+                    activity,
+                    year,
+                    term,
+                    className,
+                    subject,
+                    description
+                };
+
+                try {
+                    showNotification(`📤 Uploading ${file.name}...`);
+                    const uploaded = await uploadDocumentViaScript(file, metadataProps);
+                    documents.push({
+                        id: uploaded.id || uploaded.url || file.name,
+                        name: uploaded.name || file.name,
+                        type: getFileType(file.type),
+                        size: Number(uploaded.size) || file.size,
+                        date: uploaded.date || new Date().toLocaleDateString(),
+                        mimeType: uploaded.mimeType || file.type,
+                        activity: metadataProps.activity,
+                        year: metadataProps.year,
+                        term: metadataProps.term,
+                        className: metadataProps.className,
+                        subject: metadataProps.subject,
+                        description: metadataProps.description,
+                        url: uploaded.url || uploaded.webViewLink || '',
+                        fullPath: uploaded.id || uploaded.url || file.name
+                    });
+                    successCount++;
+                } catch (uploadError) {
+                    console.error('Error uploading file:', uploadError);
+                    showNotification(`❌ Error uploading ${file.name}`, true);
+                }
+                uploadedCount++;
+            }
+
+            selectedFiles = [];
+            document.getElementById('fileInput').value = '';
+            document.getElementById('docActivity').value = '';
+            document.getElementById('docClass').value = '';
+            document.getElementById('docSubject').value = '';
+            document.getElementById('docTerm').value = '';
+            document.getElementById('docYear').value = '';
+            document.getElementById('docDescription').value = '';
+
+            fetchDocumentList();
+            renderDocuments();
+            updateSelectedFilesUI();
+            showNotification(`${successCount}/${uploadedCount} file(s) uploaded successfully!`);
+        }
+
+        function getFileType(mimeType) {
+            if (mimeType.startsWith('image/')) return 'image';
+            if (mimeType.startsWith('video/')) return 'video';
+            if (mimeType.startsWith('audio/')) return 'audio';
+            if (mimeType.includes('pdf') || mimeType.includes('word') || mimeType.includes('text')) return 'document';
+            if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('tar') || mimeType.includes('archive')) return 'archive';
+            return 'default';
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documentsContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            if (documents.length === 0 || displayedDocuments.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                updateStats();
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+
+            if (currentViewMode === 'grid') {
+                container.className = 'documents-grid';
+                displayedDocuments.forEach(doc => {
+                    container.innerHTML += createCardView(doc);
+                });
+            } else {
+                container.className = 'documents-list';
+                displayedDocuments.forEach(doc => {
+                    container.innerHTML += createListView(doc);
+                });
+            }
+
+            updateStats();
+        }
+
+        function createCardView(doc) {
+            const icon = fileIcons[doc.type] || fileIcons.default;
+            const isSelected = selectedDocs.has(doc.id);
+            const safeId = String(doc.id).replace(/'/g, "\\'");
+            const safeName = String(doc.name || 'Untitled Document').replace(/"/g, '&quot;');
+            return `
+                <div class="document-card">
+                    <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} 
+                           onchange="toggleDocSelection('${safeId}')" title="Select for bulk actions">
+                    <div class="doc-icon">${icon}</div>
+                    <div class="doc-name" title="${safeName}">${doc.name || 'Untitled Document'}</div>
+                    <div class="doc-meta">
+                        <div><strong>Subject:</strong> ${doc.subject || 'N/A'}</div>
+                        <div><strong>Term:</strong> ${doc.term || 'N/A'}</div>
+                        <div><strong>Year:</strong> ${doc.year || 'N/A'}</div>
+                        <div>${formatFileSize(doc.size)} • ${doc.date || ''}</div>
+                    </div>
+                    <div class="doc-actions">
+                        <button class="action-btn view-btn-doc" onclick="viewDocument('${safeId}')">View</button>
+                        <button class="action-btn download-btn" onclick="downloadDocument('${safeId}')">Download</button>
+                        <div class="share-dropdown">
+                            <button class="action-btn share-btn" onclick="prepareShare('${safeId}')">Share ▾</button>
+                            <div class="share-dropdown-content">
+                                <a href="#" onclick="prepareSocialShare('${safeId}'); return false;">🌐 Social Media</a>
+                            </div>
+                        </div>
+                        <button class="action-btn delete-btn" onclick="deleteDocument('${safeId}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createListView(doc) {
+            const icon = fileIcons[doc.type] || fileIcons.default;
+            const isSelected = selectedDocs.has(doc.id);
+            const safeId = String(doc.id).replace(/'/g, "\\'");
+            const safeName = String(doc.name || 'Untitled Document').replace(/"/g, '&quot;');
+            return `
+                <div class="document-row">
+                    <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} 
+                           onchange="toggleDocSelection('${safeId}')">
+                    <div class="row-icon">${icon}</div>
+                    <div class="row-info">
+                        <h4>${safeName}</h4>
+                        <p>${doc.subject || 'N/A'} • ${doc.term || 'N/A'} • ${doc.year || 'N/A'}</p>
+                        <p>${doc.date || ''} • ${formatFileSize(doc.size)}</p>
+                    </div>
+                    <div>${(doc.type || 'default').charAt(0).toUpperCase() + (doc.type || 'default').slice(1)}</div>
+                    <div>${formatFileSize(doc.size)}</div>
+                    <div class="row-actions">
+                        <button class="action-btn view-btn-doc" onclick="viewDocument('${safeId}')">View</button>
+                        <button class="action-btn download-btn" onclick="downloadDocument('${safeId}')">Download</button>
+                        <div class="share-dropdown">
+                            <button class="action-btn share-btn" onclick="prepareShare('${safeId}')">Share ▾</button>
+                            <div class="share-dropdown-content">
+                                <a href="#" onclick="prepareSocialShare('${safeId}'); return false;">🌐 Social Media</a>
+                            </div>
+                        </div>
+                        <button class="action-btn delete-btn" onclick="deleteDocument('${safeId}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleView(mode, button) {
+            currentViewMode = mode;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            if (button) button.classList.add('active');
+            renderDocuments();
+        }
+
+        function resolveViewUrl(doc) {
+            if (!doc) return '';
+            if (doc.webViewLink) return doc.webViewLink;
+            if (doc.url) return doc.url;
+            return '';
+        }
+
+        async function viewDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (!doc) return;
+
+            const viewUrl = resolveViewUrl(doc);
+            const preview = document.getElementById('previewContent');
+            let content = '';
+
+            if (doc.type === 'image' && doc.url) {
+                content = `<img src="${doc.url}" style="max-width: 100%; border-radius: 5px;">`;
+            } else if (doc.type === 'video' && doc.url) {
+                content = `<video controls style="max-width: 100%; border-radius: 5px;"><source src="${doc.url}"></video>`;
+            } else if (doc.type === 'audio' && doc.url) {
+                content = `<audio controls style="width: 100%;"><source src="${doc.url}"></audio>`;
+            } else if (viewUrl) {
+                window.open(viewUrl, '_blank');
+                showNotification(`🔗 Opening ${doc.name}...`);
+                return;
+            } else {
+                content = `<p style="text-align: center; padding: 40px; color: #999;">Preview for ${doc.name}</p>
+                          <p style="text-align: center;">Subject: ${doc.subject}</p>
+                          <p style="text-align: center;">Term: ${doc.term}</p>
+                          <p style="text-align: center;">Year: ${doc.year}</p>
+                          <p style="text-align: center;">File size: ${formatFileSize(doc.size)}</p>
+                          <button class="submit-btn" onclick="downloadDocument('${String(id).replace(/'/g, "\\'")}')">Download to View</button>`;
+            }
+
+            preview.innerHTML = content;
+            document.getElementById('viewModal').style.display = 'block';
+        }
+
+        function getDownloadUrl(doc) {
+            if (!doc) return '';
+            if (doc.webContentLink) return doc.webContentLink;
+            if (doc.url && /drive\.google\.com/.test(doc.url) && doc.id) {
+                const fileId = encodeURIComponent(doc.id);
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            }
+            if (doc.url && /docs\.google\.com/.test(doc.url) && doc.id) {
+                const fileId = encodeURIComponent(doc.id);
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            }
+            if (doc.url) return String(doc.url);
+            return '';
+        }
+
+        async function forceDownloadUrl(url, filename) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Download response error');
+                }
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = filename || 'download';
+                document.body.appendChild(link);
+                link.click();
+                URL.revokeObjectURL(objectUrl);
+                link.remove();
+            } catch (err) {
+                const fallbackLink = document.createElement('a');
+                fallbackLink.href = url;
+                fallbackLink.download = filename || 'download';
+                fallbackLink.target = '_blank';
+                document.body.appendChild(fallbackLink);
+                fallbackLink.click();
+                fallbackLink.remove();
+            }
+        }
+
+        async function tryDownloadWithFetch(url, filename) {
+            try {
+                const response = await fetch(url, { credentials: 'include' });
+                if (!response.ok) {
+                    return { success: false, status: response.status };
+                }
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = filename || 'download';
+                document.body.appendChild(link);
+                link.click();
+                URL.revokeObjectURL(objectUrl);
+                link.remove();
+                return { success: true };
+            } catch (err) {
+                return { success: false };
+            }
+        }
+
+        async function downloadViaScript(fileId, filename) {
+            if (!fileId) return false;
+            try {
+                const resp = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'download', fileId })
+                });
+                const data = await resp.json();
+                if (data && data.status === 'success' && data.base64) {
+                    const byteChars = atob(data.base64);
+                    const byteNumbers = new Array(byteChars.length);
+                    for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: data.mimeType || 'application/octet-stream' });
+                    const objectUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = objectUrl;
+                    link.download = filename || data.name || 'download';
+                    document.body.appendChild(link);
+                    link.click();
+                    URL.revokeObjectURL(objectUrl);
+                    link.remove();
+                    return true;
+                }
+                return false;
+            } catch (err) {
+                console.error('downloadViaScript error', err);
+                return false;
+            }
+        }
+
+        async function downloadDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (!doc) return;
+
+            // Resolve a best-effort download URL
+            const downloadUrl = getDownloadUrl(doc) || doc.url || doc.webViewLink || '';
+            const filename = doc.name || 'document';
+
+            if (!downloadUrl) {
+                showNotification('⚠️ Unable to download document. No download link available.', true);
+                return;
+            }
+
+            // 1) Try direct fetch (may fail due to CORS or permission)
+            const tryDirect = await tryDownloadWithFetch(downloadUrl, filename);
+            if (tryDirect.success) {
+                showNotification(`📥 Downloading "${filename}"...`);
+                return;
+            }
+
+            // 2) If direct failed (403 or CORS), try backend proxy via Apps Script (requires server support)
+            if (doc.id) {
+                const proxied = await downloadViaScript(doc.id, filename);
+                if (proxied) {
+                    showNotification(`📥 Downloading "${filename}" via proxy...`);
+                    return;
+                }
+            }
+
+            // 3) Last resort: open in new tab so the user can interact (may prompt auth)
+            try {
+                window.open(downloadUrl, '_blank');
+                showNotification('Opened file in a new tab; you may need to sign in or change permissions to download.', true);
+            } catch (e) {
+                // Fallback to forcing a navigation to the URL
+                location.href = downloadUrl;
+            }
+        }
+
+        async function prepareShare(id) {
+            window.shareDocId = id;
+            const doc = documents.find(d => d.id === id);
+            if (doc) {
+                const shareLink = doc.url || doc.webViewLink || getDownloadUrl(doc) || window.location.href;
+                document.getElementById('shareEmail').dataset.shareLink = shareLink;
+                document.getElementById('shareMessage').value = '';
+                document.getElementById('socialShareMessage').value = `Open this document: ${shareLink}`;
+            }
+            document.getElementById('shareModal').style.display = 'block';
+        }
+
+        async function prepareSocialShare(id) {
+            window.shareDocId = id;
+            const doc = documents.find(d => d.id === id);
+            if (doc) {
+                const shareLink = doc.url || doc.webViewLink || getDownloadUrl(doc) || window.location.href;
+                document.getElementById('socialShareMessage').value = `Open this document: ${shareLink}`;
+            }
+            document.getElementById('socialShareModal').style.display = 'block';
+        }
+
+        // Security: Input sanitization to prevent XSS
+        function sanitizeInput(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Security: URL validation
+        function isValidUrl(url) {
+            try {
+                const parsed = new URL(url);
+                return ['http:', 'https:'].includes(parsed.protocol);
+            } catch {
+                return false;
+            }
+        }
+
+        // Security: Encode parameters safely
+        function encodeShareParams(text) {
+            return encodeURIComponent(text);
+        }
+
+        function getShareData() {
+            const doc = documents.find(d => d.id === window.shareDocId);
+            if (!doc) return null;
+
+            const shareLink = doc.url || doc.webViewLink || getDownloadUrl(doc) || window.location.href;
+            const customMessage = sanitizeInput(document.getElementById('socialShareMessage').value);
+            const message = customMessage || `Check out this document: ${doc.name}`;
+
+            return {
+                name: doc.name,
+                type: doc.type,
+                message: message,
+                size: doc.size,
+                date: doc.date,
+                shareLink: shareLink
+            };
+        }
+
+        function shareToFacebook() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToTwitter() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToWhatsApp() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToLinkedIn() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToTelegram() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToReddit() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareToTikTok() {
+            // Deprecated. Use unified shareTo(platform) handler.
+        }
+
+        function shareViaEmail() {
+            // Deprecated. Use copyShareLink() or webShare() from the unified UI.
+        }
+
+        // Unified social sharing helper
+        function shareTo(platform) {
+            const data = getShareData();
+            if (!data) return showNotification('No document selected for sharing', true);
+
+            const url = data.shareLink || window.location.href;
+            const text = `${data.message || ''}\n\n${data.name} (${data.type}) - ${formatFileSize(data.size)}\n${url}`;
+
+            const encodedText = encodeShareParams(text);
+            const encodedUrl = encodeShareParams(url);
+
+            let shareUrl = '';
+            switch ((platform || '').toLowerCase()) {
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+                    break;
+                case 'x':
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+                    break;
+                case 'whatsapp':
+                    shareUrl = `https://wa.me/?text=${encodedText}`;
+                    break;
+                case 'linkedin':
+                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+                    break;
+                case 'telegram':
+                    shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+                    break;
+                case 'reddit':
+                    shareUrl = `https://reddit.com/submit?url=${encodedUrl}&title=${encodeShareParams(data.name)}`;
+                    break;
+                case 'tiktok':
+                    // No direct web share, open TikTok homepage and copy text
+                    navigator.clipboard.writeText(text).then(() => {
+                        showNotification('Share text copied to clipboard. Open TikTok and paste.');
+                        window.open('https://www.tiktok.com/', '_blank');
+                    }).catch(() => showNotification('Unable to copy text for TikTok', true));
+                    return;
+                default:
+                    // Fallback: copy link
+                    copyShareLink();
+                    return;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank', 'width=700,height=500');
+                showNotification('Opening share dialog...');
+            } else {
+                showNotification('Unable to prepare share', true);
+            }
+        }
+
+        function copyShareLink() {
+            const data = getShareData();
+            if (!data) return showNotification('No document selected for sharing', true);
+            const url = data.shareLink || window.location.href;
+            navigator.clipboard.writeText(url).then(() => showNotification('Link copied to clipboard'))
+                .catch(() => showNotification('Unable to copy link', true));
+        }
+
+        function webShare() {
+            const data = getShareData();
+            if (!data) return showNotification('No document selected for sharing', true);
+            const sharePayload = {
+                title: data.name,
+                text: data.message || `Check out this document: ${data.name}`,
+                url: data.shareLink || window.location.href
+            };
+            if (navigator.share) {
+                navigator.share(sharePayload).catch(() => showNotification('Share cancelled or failed', true));
+            } else {
+                // Fallback to copy link
+                copyShareLink();
+            }
+        }
+
+        function shareDocument(event) {
+            event.preventDefault();
+            const email = document.getElementById('shareEmail').value.trim();
+            const message = document.getElementById('shareMessage').value.trim();
+            const doc = documents.find(d => d.id === window.shareDocId);
+
+            if (!doc) {
+                showNotification('No document selected for sharing', true);
+                return;
+            }
+
+            if (!email) {
+                showNotification('Please enter a recipient email address.', true);
+                return;
+            }
+
+            const subject = encodeShareParams(`Shared document: ${doc.name || 'Document'}`);
+            const bodyText = message ? `${message}\n\n` : '';
+            const shareLink = document.getElementById('shareEmail').dataset.shareLink || doc.url || doc.webViewLink || window.location.href;
+            const body = encodeShareParams(`${bodyText}Document: ${doc.name || 'Untitled'}\nLink: ${shareLink}`);
+            const mailto = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
+            window.location.href = mailto;
+            showNotification(`📧 Sharing "${doc.name || 'Document'}" with ${email}...`);
+            document.getElementById('shareEmail').value = '';
+            document.getElementById('shareMessage').value = '';
+            closeModal('shareModal');
+        }
+
+        async function deleteDocument(id) {
+            if (!confirm('Are you sure you want to delete this document?')) {
+                return;
+            }
+
+            const doc = documents.find(d => d.id === id);
+            if (!doc) {
+                showNotification('Document not found.', true);
+                return;
+            }
+
+            try {
+                if (doc.id) {
+                    await deleteDocumentViaScript(doc.id);
+                }
+            } catch (error) {
+                console.error('Backend delete failed:', error);
+                showNotification('⚠️ Could not delete file from backend. It may already be deleted or require additional permissions.', true);
+                return;
+            }
+
+            documents = documents.filter(d => d.id !== id);
+            displayedDocuments = displayedDocuments.filter(d => d.id !== id);
+            selectedDocs.delete(id);
+            renderDocuments();
+            showNotification('Document deleted successfully!');
+        }
+
+        function filterDocuments() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const subject = document.getElementById('filterSubject').value.toLowerCase();
+            const type = document.getElementById('filterType').value;
+            const term = document.getElementById('filterTerm').value;
+            const year = document.getElementById('filterYear').value.trim();
+
+            displayedDocuments = documents.filter(doc => {
+                const matchSearch = (doc.name || '').toLowerCase().includes(search);
+                const matchSubject = subject === '' || (doc.subject || '').toLowerCase().includes(subject);
+                const matchType = type === '' || (doc.type || '') === type;
+                const matchTerm = term === '' || (doc.term || '') === term;
+                const matchYear = year === '' || String(doc.year || '').includes(year);
+                return matchSearch && matchSubject && matchType && matchTerm && matchYear;
+            });
+
+            renderDocuments();
+        }
+
+        function sortDocuments() {
+            const sortBy = document.getElementById('sortBy').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const subject = document.getElementById('filterSubject').value.toLowerCase();
+            const type = document.getElementById('filterType').value;
+            const term = document.getElementById('filterTerm').value;
+            const year = document.getElementById('filterYear').value.trim();
+
+            let sorted = documents.filter(doc => {
+                const matchSearch = (doc.name || '').toLowerCase().includes(search);
+                const matchSubject = subject === '' || (doc.subject || '').toLowerCase().includes(subject);
+                const matchType = type === '' || (doc.type || '') === type;
+                const matchTerm = term === '' || (doc.term || '') === term;
+                const matchYear = year === '' || String(doc.year || '').includes(year);
+                return matchSearch && matchSubject && matchType && matchTerm && matchYear;
+            });
+
+            switch(sortBy) {
+                case 'date-desc':
+                    sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+                case 'date-asc':
+                    sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'name-asc':
+                    sorted.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    sorted.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 'size-desc':
+                    sorted.sort((a, b) => b.size - a.size);
+                    break;
+                case 'size-asc':
+                    sorted.sort((a, b) => a.size - b.size);
+                    break;
+                case 'subject-asc':
+                    sorted.sort((a, b) => a.subject.localeCompare(b.subject));
+                    break;
+                case 'subject-desc':
+                    sorted.sort((a, b) => b.subject.localeCompare(a.subject));
+                    break;
+                case 'term-asc':
+                    sorted.sort((a, b) => a.term.localeCompare(b.term));
+                    break;
+                case 'year-desc':
+                    sorted.sort((a, b) => (b.year || '').localeCompare(a.year || ''));
+                    break;
+                case 'year-asc':
+                    sorted.sort((a, b) => (a.year || '').localeCompare(b.year || ''));
+                    break;
+            }
+
+            displayedDocuments = sorted;
+            renderDocuments();
+        }
+        function formatFileSize(bytes) {
+            const size = Number(bytes) || 0;
+            if (size === 0) return '0B';
+            const abs = Math.abs(size);
+            if (abs < 1024) return size + 'B';
+            if (abs < 1024 * 1024) return (size / 1024).toFixed(1).replace(/\.0$/, '') + 'KB';
+            if (abs < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(1).replace(/\.0$/, '') + 'MB';
+            return (size / 1024 / 1024 / 1024).toFixed(1).replace(/\.0$/, '') + 'GB';
+        }
+
+        // Selected files UI helpers
+        function updateSelectedFilesUI() {
+            const container = document.getElementById('selectedFilesList');
+            const placeholder = document.getElementById('selectedFilesPlaceholder');
+            if (!container) return;
+
+            if (!selectedFiles || selectedFiles.length === 0) {
+                container.style.display = 'none';
+                if (placeholder) placeholder.textContent = 'No files selected';
+                return;
+            }
+
+            container.style.display = 'block';
+            container.innerHTML = '';
+            selectedFiles.forEach((file, idx) => {
+                const item = document.createElement('div');
+                item.className = 'selected-file-item';
+                const left = document.createElement('div');
+                left.textContent = `${file.name} · ${formatFileSize(file.size)}`;
+                const right = document.createElement('div');
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-selected-file';
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = function() { removeSelectedFile(idx); };
+                right.appendChild(removeBtn);
+                item.appendChild(left);
+                item.appendChild(right);
+                container.appendChild(item);
+            });
+        }
+
+        function removeSelectedFile(index) {
+            if (!selectedFiles || index < 0 || index >= selectedFiles.length) return;
+            selectedFiles.splice(index, 1);
+            // If file input exists, clear it so re-selecting works predictably
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.value = '';
+            updateSelectedFilesUI();
+            showNotification('File removed from selection');
+        }
+
+        function updateStats() {
+            const totalSize = displayedDocuments.reduce((sum, doc) => sum + (Number(doc.size) || 0), 0);
+            const uniqueTypes = new Set(displayedDocuments.map(doc => doc.type)).size;
+
+            document.getElementById('totalDocs').textContent = displayedDocuments.length;
+            document.getElementById('totalSize').textContent = formatFileSize(totalSize);
+            document.getElementById('fileTypes').textContent = uniqueTypes;
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Cloud Setup Functions
+
+        // Bulk selection functions
+        function toggleDocSelection(id) {
+            if (selectedDocs.has(id)) {
+                selectedDocs.delete(id);
+            } else {
+                selectedDocs.add(id);
+            }
+            updateBulkActions();
+        }
+
+        function updateBulkActions() {
+            const bulkBar = document.querySelector('.bulk-actions');
+            document.getElementById('selectedCount').textContent = selectedDocs.size + ' selected';
+            if (selectedDocs.size > 0) {
+                bulkBar.classList.add('visible');
+            } else {
+                bulkBar.classList.remove('visible');
+            }
+        }
+
+        function selectAllDocs() {
+            if (selectedDocs.size === documents.length) {
+                selectedDocs.clear();
+            } else {
+                documents.forEach(doc => selectedDocs.add(doc.id));
+            }
+            renderDocuments();
+            updateBulkActions();
+        }
+
+        async function deleteSelectedDocs() {
+            if (selectedDocs.size === 0) return;
+
+            if (confirm(`Are you sure you want to delete ${selectedDocs.size} document(s)?`)) {
+                // attempt backend deletion for each selected doc
+                const ids = Array.from(selectedDocs);
+                for (const id of ids) {
+                    const doc = documents.find(d => d.id === id);
+                    if (doc && doc.id) {
+                        try {
+                            await deleteDocumentViaScript(doc.id);
+                        } catch (err) {
+                            console.error('Failed to delete on backend for', doc.id, err);
+                            // continue to attempt other deletions but inform user
+                            showNotification(`⚠️ Failed to delete ${doc.name} from backend.`, true);
+                        }
+                    }
+                }
+
+                documents = documents.filter(doc => !selectedDocs.has(doc.id));
+                displayedDocuments = displayedDocuments.filter(doc => !selectedDocs.has(doc.id));
+                selectedDocs.clear();
+                renderDocuments();
+                updateBulkActions();
+                showNotification('✅ Documents deleted successfully!');
+            }
+        }
+
+        async function downloadSelectedDocs() {
+            if (selectedDocs.size === 0) return;
+
+            const docsToDownload = documents.filter(doc => selectedDocs.has(doc.id));
+            for (const doc of docsToDownload) {
+                await downloadDocument(doc.id);
+            }
+            showNotification(`📥 Downloading ${selectedDocs.size} file(s)...`);
+        }
+    </script>
+
+</body>
+</html>
