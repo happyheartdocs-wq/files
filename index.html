@@ -379,6 +379,8 @@
         .share-dropdown {
             position: relative;
             display: inline-block;
+            flex: 1;
+            min-width: 70px;
         }
 
         .share-dropdown-content {
@@ -387,13 +389,19 @@
             background-color: #f9f9f9;
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
+            z-index: 1000;
             border-radius: 5px;
             overflow: hidden;
+            right: 0;
+            top: 100%;
         }
 
         .share-dropdown:hover .share-dropdown-content {
             display: block;
+        }
+
+        .share-dropdown-content.active {
+            display: block !important;
         }
 
         .share-dropdown-content a {
@@ -1861,8 +1869,8 @@
                     <div class="doc-actions">
                         <button class="action-btn view-btn-doc" onclick="viewDocument('${safeId}')">View</button>
                         <button class="action-btn download-btn" onclick="downloadDocument('${safeId}')">Download</button>
-                        <div class="share-dropdown">
-                            <button class="action-btn share-btn" onclick="prepareShare('${safeId}')">Share ▾</button>
+                        <div class="share-dropdown" onclick="toggleShareDropdown(event, '${safeId}')">
+                            <button class="action-btn share-btn" style="width: 100%;">Share ▾</button>
                             <div class="share-dropdown-content">
                                 <a href="#" onclick="prepareSocialShare('${safeId}'); return false;">🌐 Social Media</a>
                             </div>
@@ -1893,8 +1901,8 @@
                     <div class="row-actions">
                         <button class="action-btn view-btn-doc" onclick="viewDocument('${safeId}')">View</button>
                         <button class="action-btn download-btn" onclick="downloadDocument('${safeId}')">Download</button>
-                        <div class="share-dropdown">
-                            <button class="action-btn share-btn" onclick="prepareShare('${safeId}')">Share ▾</button>
+                        <div class="share-dropdown" onclick="toggleShareDropdown(event, '${safeId}')">
+                            <button class="action-btn share-btn" style="width: 100%;">Share ▾</button>
                             <div class="share-dropdown-content">
                                 <a href="#" onclick="prepareSocialShare('${safeId}'); return false;">🌐 Social Media</a>
                             </div>
@@ -2057,29 +2065,49 @@
                 return;
             }
 
-            // 1) Try direct fetch (may fail due to CORS or permission)
+            showNotification(`📥 Downloading "${filename}"...`);
+
+            // For mobile and desktop, try multiple approaches
+            // 1) Try direct fetch with blob approach
             const tryDirect = await tryDownloadWithFetch(downloadUrl, filename);
             if (tryDirect.success) {
-                showNotification(`📥 Downloading "${filename}"...`);
                 return;
             }
 
-            // 2) If direct failed (403 or CORS), try backend proxy via Apps Script (requires server support)
+            // 2) For mobile, try a simpler approach with window.location
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                // On mobile, first try to open in iframe then trigger download
+                try {
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = filename;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    return;
+                } catch (e) {
+                    console.error('Mobile download attempt 1 failed:', e);
+                }
+            }
+
+            // 3) If fetch/link approach failed, try backend proxy
             if (doc.id) {
                 const proxied = await downloadViaScript(doc.id, filename);
                 if (proxied) {
-                    showNotification(`📥 Downloading "${filename}" via proxy...`);
+                    showNotification(`📥 Downloaded via proxy...`);
                     return;
                 }
             }
 
-            // 3) Last resort: open in new tab so the user can interact (may prompt auth)
+            // 4) Last resort: open in new tab
             try {
                 window.open(downloadUrl, '_blank');
-                showNotification('Opened file in a new tab; you may need to sign in or change permissions to download.', true);
+                showNotification('Opened file in new tab. If it doesn\'t download, try "Save as" from the menu.', true);
             } catch (e) {
-                // Fallback to forcing a navigation to the URL
-                location.href = downloadUrl;
+                showNotification('Unable to download. Please try again.', true);
             }
         }
 
@@ -2092,8 +2120,34 @@
                 document.getElementById('shareMessage').value = '';
                 document.getElementById('socialShareMessage').value = `Open this document: ${shareLink}`;
             }
-            document.getElementById('shareModal').style.display = 'block';
+            // Auto-open social share modal instead of email modal
+            prepareSocialShare(id);
         }
+
+        function toggleShareDropdown(event, id) {
+            event.stopPropagation();
+            // Close all other dropdowns
+            document.querySelectorAll('.share-dropdown-content').forEach(d => {
+                if (!event.currentTarget.contains(d)) {
+                    d.classList.remove('active');
+                }
+            });
+            
+            // Toggle current dropdown
+            const dropdown = event.currentTarget.querySelector('.share-dropdown-content');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.share-dropdown')) {
+                document.querySelectorAll('.share-dropdown-content').forEach(d => {
+                    d.classList.remove('active');
+                });
+            }
+        });
 
         async function prepareSocialShare(id) {
             window.shareDocId = id;
